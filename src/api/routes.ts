@@ -195,14 +195,19 @@ async function sendRequestToProvider(
     }
   }
 
+  let headers = {
+      ...(config?.headers || {}),
+  };
+  // 如果transformer没有自定义auth方法，则使用provider的apiKey，某些严格的provider不允许重复的Authorization头
+  if (typeof transformer.auth !== "function") {
+    headers.Authorization = `Bearer ${provider.apiKey}`;
+  }
+
   // 发送HTTP请求
   const response = await sendUnifiedRequest(url, requestBody, {
     httpsProxy: fastify._server!.configService.getHttpsProxy(),
     ...config,
-    headers: {
-      Authorization: `Bearer ${provider.apiKey}`,
-      ...(config?.headers || {}),
-    },
+    headers: headers,
   });
 
   // 处理请求错误
